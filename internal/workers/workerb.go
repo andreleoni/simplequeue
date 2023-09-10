@@ -1,23 +1,40 @@
 package workers
 
-import "simplequeue/internal/simplequeue"
+import (
+	"fmt"
+	"reflect"
+	"simplequeue/internal/simplequeue"
+)
 
 func init() {
-	simplequeue.Register("workerB", WorkerB{})
+	workerB := WorkerB{}
+
+	simplequeue.Register(workerB.StructName(), workerB)
 }
 
 type WorkerB struct {
-	simplequeue.BaseWorker
+}
+
+func (w WorkerB) StructName() string {
+	return fmt.Sprint(reflect.TypeOf(w))
 }
 
 func (w WorkerB) Perform(data string) error {
+	fmt.Println("processing worker B", data)
+
 	return nil
 }
 
 func (w WorkerB) QueueName() string {
-	return "low"
+	return "default"
 }
 
 func (w WorkerB) Retry(count int) bool {
 	return true
+}
+
+func (w WorkerB) PerformAsync(data string) string {
+	fmt.Println(w.StructName(), w.QueueName(), data)
+
+	return simplequeue.Enqueuer(w.QueueName(), w.StructName(), data)
 }

@@ -34,7 +34,7 @@ func (w WorkerB) Retry(count int) bool {
 }
 
 func (w WorkerB) PerformAsync(data string) string {
-	fmt.Println(w.StructName(), w.QueueName(), data)
+	fmt.Println("PerformAsync", w.StructName(), w.QueueName(), data)
 
 	return simplequeue.Enqueuer(w.QueueName(), w.StructName(), data)
 }

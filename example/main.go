@@ -4,14 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"simplequeue/internal/simplequeue"
-
-	_ "simplequeue/internal/workers"
+	"simplequeue"
 )
 
 func main() {
-	fmt.Println(simplequeue.Registers)
-
 	for i := 0; i < 100; i++ {
 		for _, worker := range simplequeue.Registers {
 			fmt.Println(worker.QueueName(), worker.PerformAsync("oi leoni"))
@@ -33,6 +29,9 @@ func main() {
 			fmt.Println("attributes", messageData)
 
 			gotStruct := simplequeue.Registers[messageData.WorkerName]
+			if gotStruct == nil {
+				fmt.Println("worker not found", messageData.WorkerName)
+			}
 
 			gotStruct.Perform(messageData.Data)
 		}

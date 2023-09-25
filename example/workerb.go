@@ -1,9 +1,9 @@
-package workers
+package main
 
 import (
 	"fmt"
 	"reflect"
-	"simplequeue/internal/simplequeue"
+	"simplequeue"
 )
 
 func init() {

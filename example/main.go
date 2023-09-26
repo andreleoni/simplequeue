@@ -1,47 +1,87 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
-	"log"
+	"reflect"
 	"simplequeue"
+	"time"
 )
 
 func main() {
-	for i := 0; i < 100; i++ {
-		for _, worker := range simplequeue.Registers {
-			fmt.Println(worker.QueueName(), worker.PerformAsync("oi leoni"))
-		}
-	}
+	workerA := WorkerA{}
+	simplequeue.Register(workerA.StructName(), workerA)
 
-	receivedQueueData := simplequeue.Receiver("default")
+	workerB := WorkerB{}
+	simplequeue.Register(workerB.StructName(), workerB)
 
-	for {
-		for _, queueData := range receivedQueueData {
-			fmt.Println("count", len(queueData))
-			messageData := simplequeue.MessageAttributes{}
-
-			err := json.Unmarshal([]byte(queueData), &messageData)
-			if err != nil {
-				log.Fatal(err)
+	go func() {
+		for {
+			// Generate messages to test consumer
+			for i := 0; i < 1; i++ {
+				for _, worker := range simplequeue.Registers {
+					go worker.PerformAsync(fmt.Sprint("my message ", time.Now()))
+				}
 			}
 
-			fmt.Println("attributes", messageData)
-
-			gotStruct := simplequeue.Registers[messageData.WorkerName]
-			if gotStruct == nil {
-				fmt.Println("worker not found", messageData.WorkerName)
-			}
-
-			gotStruct.Perform(messageData.Data)
+			time.Sleep(3 * time.Second)
 		}
+	}()
 
-		receivedQueueData := simplequeue.Receiver("default")
+	err := simplequeue.Starter("default")
 
-		if len(receivedQueueData) < 10 {
-			break
-		}
-	}
+	fmt.Println("error got on server start", err)
+}
 
-	fmt.Println("queues are empty")
+type WorkerA struct {
+}
+
+func (w WorkerA) StructName() string {
+	return fmt.Sprint(reflect.TypeOf(w))
+}
+
+func (w WorkerA) Perform(data string) error {
+	fmt.Println("processing worker A", data)
+
+	return nil
+}
+
+func (w WorkerA) QueueName() string {
+	return "default"
+}
+
+func (w WorkerA) Retry(count int) bool {
+	return false
+}
+
+func (w WorkerA) PerformAsync(data string) string {
+	// fmt.Println("PerformAsync", w.StructName(), w.QueueName(), data)
+
+	return simplequeue.Enqueuer(w.QueueName(), w.StructName(), data)
+}
+
+type WorkerB struct {
+}
+
+func (w WorkerB) StructName() string {
+	return fmt.Sprint(reflect.TypeOf(w))
+}
+
+func (w WorkerB) Perform(data string) error {
+	fmt.Println("processing worker B", data)
+
+	return nil
+}
+
+func (w WorkerB) QueueName() string {
+	return "default"
+}
+
+func (w WorkerB) Retry(count int) bool {
+	return true
+}
+
+func (w WorkerB) PerformAsync(data string) string {
+	// DEBUG LOG: fmt.Println("PerformAsync", w.StructName(), w.QueueName(), data)
+
+	return simplequeue.Enqueuer(w.QueueName(), w.StructName(), data)
 }

@@ -3,7 +3,6 @@ package simplequeue
 import (
 	"encoding/hex"
 	"encoding/json"
-	"fmt"
 	"log"
 )
 
@@ -26,7 +25,7 @@ func Enqueuer(queue, workerName, data string) string {
 		log.Fatal(err)
 	}
 
-	fmt.Println("enqueuer", queue, string(jsonAttributes))
+	// LOG DEBUG: fmt.Println("enqueuer", queue, string(jsonAttributes))
 
 	return messageUUID
 }

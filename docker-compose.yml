@@ -8,8 +8,8 @@ services:
       - '6379:6379'
     command: redis-server
     volumes:
-      - cache:/data
+      - cache2:/data
 
 volumes:
-  cache:
+  cache2:
     driver: local

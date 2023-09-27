@@ -27,7 +27,7 @@ func main() {
 		}
 	}()
 
-	err := simplequeue.Starter("default")
+	err := simplequeue.Starter("default", "low", "high")
 
 	fmt.Println("error got on server start", err)
 }
@@ -73,7 +73,7 @@ func (w WorkerB) Perform(data string) error {
 }
 
 func (w WorkerB) QueueName() string {
-	return "default"
+	return "low"
 }
 
 func (w WorkerB) Retry(count int) bool {

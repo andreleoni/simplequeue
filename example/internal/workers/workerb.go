@@ -11,10 +11,10 @@ type WorkerB struct {
 
 func NewWorkerB() *WorkerB {
 	workerB := WorkerB{}
-	workerB.SetQueue("low")
+	workerB.SetQueueName("low")
 	workerB.SetRegisterName("workerB")
 
-	return &WorkerB{}
+	return &workerB
 }
 
 func (w WorkerB) Perform(data string) error {

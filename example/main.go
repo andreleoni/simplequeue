@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"simplequeue"
+	"simplequeue/example/internal/workers"
 	_ "simplequeue/example/internal/workers"
 	"simplequeue/queue/redis"
 	"time"
@@ -26,9 +27,8 @@ func generateSeedToQueues() {
 		for {
 			// Generate messages to test consumer
 			for i := 0; i < 1; i++ {
-				for _, worker := range simplequeue.Registers {
-					go worker.PerformAsync(fmt.Sprint("my message ", time.Now()))
-				}
+				go workers.NewWorkerA().PerformAsync(fmt.Sprint("my message A ", time.Now()))
+				go workers.NewWorkerB().PerformAsync(fmt.Sprint("my message B ", time.Now()))
 			}
 
 			time.Sleep(3 * time.Second)

@@ -1,52 +1,44 @@
 package simplequeue
 
-import "fmt"
-
 type Worker interface {
+	// Perform will process a job
 	Perform(data string) error
+
+	// PerformAsync will schedule a job on queue
 	PerformAsync(data string) string
-	Queue() string
-	RegisterName() string
-	RetryCount() string
-	SetQueue(queueName string)
+
+	// Retrieve worker options
+	GetQueueName() string
+	GetRegisterName() string
+
+	// Set worker options
+	SetQueueName(queueName string)
 	SetRegisterName(registerName string)
-	SetRetryCount(retryCount int)
 }
 
 type WorkerBase struct {
 	registerName string
-	retryCount   int
-	queue        string
+	queueName    string
 }
 
-func (w *WorkerBase) SetQueue(queueName string) {
-	w.queue = queueName
+func (w *WorkerBase) SetQueueName(queueName string) {
+	w.queueName = queueName
 }
 
 func (w *WorkerBase) SetRegisterName(registerName string) {
 	w.registerName = registerName
 }
 
-func (w *WorkerBase) SetRetryCount(retryCount int) {
-	w.retryCount = retryCount
+func (w *WorkerBase) GetQueueName() string {
+	return w.queueName
 }
 
-func (w *WorkerBase) Queue() string {
-	return w.queue
-}
-
-func (w *WorkerBase) RegisterName() string {
-	return w.registerName
-}
-
-func (w *WorkerBase) RetryCount() string {
+func (w *WorkerBase) GetRegisterName() string {
 	return w.registerName
 }
 
 func (w *WorkerBase) PerformAsync(data string) string {
-	fmt.Println("PerformAsync", w.RegisterName(), w.Queue(), data)
-
 	enqueuer := NewEnqueuer()
 
-	return enqueuer.Enqueue(w.Queue(), w.RegisterName(), data)
+	return enqueuer.Enqueue(w.GetQueueName(), w.GetRegisterName(), data)
 }

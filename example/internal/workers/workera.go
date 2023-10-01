@@ -1,0 +1,24 @@
+package workers
+
+import (
+	"fmt"
+	"simplequeue"
+)
+
+type WorkerA struct {
+	simplequeue.WorkerBase
+}
+
+func NewWorkerA() *WorkerA {
+	workerA := WorkerA{}
+	workerA.SetQueue("default")
+	workerA.SetRegisterName("workerA")
+
+	return &WorkerA{}
+}
+
+func (w *WorkerA) Perform(data string) error {
+	fmt.Println("processing worker A", data)
+
+	return nil
+}

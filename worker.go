@@ -6,44 +6,47 @@ type Worker interface {
 	Perform(data string) error
 	PerformAsync(data string) string
 	Queue() string
-	StructName() string
-	SetOptions(opts WorkerOptions)
-}
-
-type WorkerOptions struct {
-	retryCount int
-	queue      string
-	structName string
-}
-
-func NewWorkerOptions(retry int, queue, structName string) WorkerOptions {
-	return WorkerOptions{
-		retryCount: retry,
-		queue:      queue,
-		structName: structName,
-	}
+	RegisterName() string
+	RetryCount() string
+	SetQueue(queueName string)
+	SetRegisterName(registerName string)
+	SetRetryCount(retryCount int)
 }
 
 type WorkerBase struct {
-	Opts WorkerOptions
+	registerName string
+	retryCount   int
+	queue        string
 }
 
-func (w *WorkerBase) SetOptions(opts WorkerOptions) {
-	w.Opts = opts
+func (w *WorkerBase) SetQueue(queueName string) {
+	w.queue = queueName
+}
+
+func (w *WorkerBase) SetRegisterName(registerName string) {
+	w.registerName = registerName
+}
+
+func (w *WorkerBase) SetRetryCount(retryCount int) {
+	w.retryCount = retryCount
 }
 
 func (w *WorkerBase) Queue() string {
-	return w.Opts.queue
+	return w.queue
 }
 
-func (w *WorkerBase) StructName() string {
-	return w.Opts.structName
+func (w *WorkerBase) RegisterName() string {
+	return w.registerName
+}
+
+func (w *WorkerBase) RetryCount() string {
+	return w.registerName
 }
 
 func (w *WorkerBase) PerformAsync(data string) string {
-	fmt.Println("PerformAsync", w.StructName(), w.Queue(), data)
+	fmt.Println("PerformAsync", w.RegisterName(), w.Queue(), data)
 
 	enqueuer := NewEnqueuer()
 
-	return enqueuer.Enqueue(w.Queue(), w.StructName(), data)
+	return enqueuer.Enqueue(w.Queue(), w.RegisterName(), data)
 }

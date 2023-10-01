@@ -2,6 +2,6 @@ package simplequeue
 
 var Registers = map[string]Worker{}
 
-func Register(name string, worker Worker) {
-	Registers[name] = worker
+func Register(worker Worker) {
+	Registers[worker.RegisterName()] = worker
 }

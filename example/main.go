@@ -3,19 +3,25 @@ package main
 import (
 	"fmt"
 	"simplequeue"
+	_ "simplequeue/example/internal/workers"
 	"simplequeue/queue/redis"
 	"time"
 )
 
 func main() {
-	workerA := WorkerA{}
-	workerA.SetOptions(simplequeue.NewWorkerOptions(0, "default", "WorkerA"))
-	simplequeue.Register(workerA.StructName(), &workerA)
+	generateSeedToQueues()
 
-	workerB := WorkerB{}
-	workerB.SetOptions(simplequeue.NewWorkerOptions(0, "low", "WorkerB"))
-	simplequeue.Register(workerB.StructName(), &workerB)
+	consumer := simplequeue.NewConsumer(
+		redis.NewRedisQueue(),
+		simplequeue.ConsumerOpts{QueuesName: []string{"default", "low", "high"}},
+	)
 
+	err := consumer.Consume()
+
+	fmt.Println("error got on server start", err)
+}
+
+func generateSeedToQueues() {
 	go func() {
 		for {
 			// Generate messages to test consumer
@@ -28,33 +34,4 @@ func main() {
 			time.Sleep(3 * time.Second)
 		}
 	}()
-
-	consumer := simplequeue.NewConsumer(
-		redis.NewRedisQueue(),
-		simplequeue.ConsumerOpts{QueuesName: []string{"default", "low", "high"}},
-	)
-
-	err := consumer.Consume()
-
-	fmt.Println("error got on server start", err)
-}
-
-type WorkerA struct {
-	simplequeue.WorkerBase
-}
-
-func (w WorkerA) Perform(data string) error {
-	fmt.Println("processing worker A", data)
-
-	return nil
-}
-
-type WorkerB struct {
-	simplequeue.WorkerBase
-}
-
-func (w WorkerB) Perform(data string) error {
-	fmt.Println("processing worker B", data)
-
-	return nil
 }

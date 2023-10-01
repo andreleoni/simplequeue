@@ -2,17 +2,19 @@ package main
 
 import (
 	"fmt"
-	"reflect"
 	"simplequeue"
+	"simplequeue/queue/redis"
 	"time"
 )
 
 func main() {
 	workerA := WorkerA{}
-	simplequeue.Register(workerA.StructName(), workerA)
+	workerA.SetOptions(simplequeue.NewWorkerOptions(0, "default", "WorkerA"))
+	simplequeue.Register(workerA.StructName(), &workerA)
 
 	workerB := WorkerB{}
-	simplequeue.Register(workerB.StructName(), workerB)
+	workerB.SetOptions(simplequeue.NewWorkerOptions(0, "low", "WorkerB"))
+	simplequeue.Register(workerB.StructName(), &workerB)
 
 	go func() {
 		for {
@@ -27,16 +29,18 @@ func main() {
 		}
 	}()
 
-	err := simplequeue.Starter("default", "low", "high")
+	consumer := simplequeue.NewConsumer(
+		redis.NewRedisQueue(),
+		simplequeue.ConsumerOpts{QueuesName: []string{"default", "low", "high"}},
+	)
+
+	err := consumer.Consume()
 
 	fmt.Println("error got on server start", err)
 }
 
 type WorkerA struct {
-}
-
-func (w WorkerA) StructName() string {
-	return fmt.Sprint(reflect.TypeOf(w))
+	simplequeue.WorkerBase
 }
 
 func (w WorkerA) Perform(data string) error {
@@ -45,43 +49,12 @@ func (w WorkerA) Perform(data string) error {
 	return nil
 }
 
-func (w WorkerA) QueueName() string {
-	return "default"
-}
-
-func (w WorkerA) Retry(count int) bool {
-	return false
-}
-
-func (w WorkerA) PerformAsync(data string) string {
-	// fmt.Println("PerformAsync", w.StructName(), w.QueueName(), data)
-
-	return simplequeue.Enqueuer(w.QueueName(), w.StructName(), data)
-}
-
 type WorkerB struct {
-}
-
-func (w WorkerB) StructName() string {
-	return fmt.Sprint(reflect.TypeOf(w))
+	simplequeue.WorkerBase
 }
 
 func (w WorkerB) Perform(data string) error {
 	fmt.Println("processing worker B", data)
 
 	return nil
-}
-
-func (w WorkerB) QueueName() string {
-	return "low"
-}
-
-func (w WorkerB) Retry(count int) bool {
-	return true
-}
-
-func (w WorkerB) PerformAsync(data string) string {
-	// DEBUG LOG: fmt.Println("PerformAsync", w.StructName(), w.QueueName(), data)
-
-	return simplequeue.Enqueuer(w.QueueName(), w.StructName(), data)
 }

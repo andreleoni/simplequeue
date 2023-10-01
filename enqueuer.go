@@ -1,12 +1,23 @@
 package simplequeue
 
 import (
-	"encoding/hex"
 	"encoding/json"
 	"log"
+	"simplequeue/queue"
+	"simplequeue/queue/redis"
 )
 
-func Enqueuer(queue, workerName, data string) string {
+type Enqueuer struct {
+	Queue queue.Queue
+}
+
+func NewEnqueuer() Enqueuer {
+	return Enqueuer{
+		Queue: redis.NewRedisQueue(),
+	}
+}
+
+func (e Enqueuer) Enqueue(queue, workerName, data string) string {
 	messageUUID := randomHex(8)
 
 	attributes := MessageAttributes{
@@ -20,7 +31,7 @@ func Enqueuer(queue, workerName, data string) string {
 		log.Fatal(err)
 	}
 
-	err = RedisAdapter.Push(queue, string(jsonAttributes))
+	err = e.Queue.Push(queue, string(jsonAttributes))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -28,10 +39,4 @@ func Enqueuer(queue, workerName, data string) string {
 	// LOG DEBUG: fmt.Println("enqueuer", queue, string(jsonAttributes))
 
 	return messageUUID
-}
-
-func randomHex(n int) string {
-	bytes := make([]byte, n)
-
-	return hex.EncodeToString(bytes)
 }
